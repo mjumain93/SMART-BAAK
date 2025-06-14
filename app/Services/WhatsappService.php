@@ -10,7 +10,7 @@ class WhatsappService
 
     public function __construct()
     {
-        $this->token = 'bXhf3o3xEFmyRhoqP3b9';
+        $this->token = env('TOKEN_WA', 'secret');
     }
 
     public function sendMessage($phone, $message)

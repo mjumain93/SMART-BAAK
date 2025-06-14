@@ -65,14 +65,14 @@ return [
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
-            'host' => '103.213.116.106',
-            'port' => '3306',
-            'database' => 'umja',
-            'username' => 'umja_user',
-            'password' => '(Iskms5h]kq_cUC*',
-            'unix_socket' => env('DB_SOCKET', ''),
-            'charset' => env('DB_CHARSET', 'utf8mb4'),
-            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'host' => env('DB_HOST_1', '127.0.0.1'),
+            'port' => env('DB_PORT_1', '3306'),
+            'database' => env('DB_DATABASE_1', 'laravel'),
+            'username' => env('DB_USERNAME_1', 'root'),
+            'password' => env('DB_PASSWORD_1', ''),
+            'unix_socket' => env('DB_SOCKET_1', ''),
+            'charset' => env('DB_CHARSET_1', 'utf8mb4'),
+            'collation' => env('DB_COLLATION_1', 'utf8mb4_unicode_ci'),
             'prefix' => '',
             'prefix_indexes' => true,
             'strict' => true,
@@ -147,7 +147,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_database_'),
+            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_') . '_database_'),
             'persistent' => env('REDIS_PERSISTENT', false),
         ],
 
