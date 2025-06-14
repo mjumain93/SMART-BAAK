@@ -13,18 +13,17 @@ class CheckPublicIp
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    protected $allowedIps = ['103.213.116.98'];
     public function handle(Request $request, Closure $next): Response
     {
+        $envIps = env('ALLOWED_IPS');
+        if (is_null($envIps) || trim($envIps) === '') {
+            return $next($request);
+        }
+        $allowedIps = array_map('trim', explode(',', $envIps));
+
         $clientIp = file_get_contents('https://api.ipify.org');;
 
-        if (!in_array($clientIp, $this->allowedIps)) {
-            // if ($request->expectsJson()) {
-            //     return response()->json([
-            //         'success' => false,
-            //         'message' => 'Akses ditolak: IP Anda tidak diizinkan.'
-            //     ], 403);
-            // }
+        if (!in_array($clientIp, $allowedIps)) {
             abort(403, 'IP ' . $clientIp . ' tidak memiliki hak akses');
         }
 
