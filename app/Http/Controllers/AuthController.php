@@ -15,78 +15,53 @@ class AuthController extends Controller
 {
     public function showLoginForm()
     {
-        return Socialite::driver('keycloak')->redirect();
+        return view('auth.login');
     }
-
-    public function attemptLogin()
+    public function login(Request $request)
     {
-        $response = Socialite::driver('keycloak')->user();
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required',
+        ]);
 
-        $accessToken  = $response->accessTokenResponseBody['id_token'] ?? null;
-        $refreshToken = $response->refreshToken ?? null;
-
-        $user = User::firstOrCreate(
-            ['email' => $response->getEmail()],
-            [
-                'name' => $response->getName(),
-                'password' => Hash::make(Str::random(16)),
-            ]
-        );
-
-        if ($user->wasRecentlyCreated) {
-            $user->assignRole('user-biasa');
+        if (Auth::attempt($request->only('email', 'password'))) {
+            $request->session()->regenerate();
+            return redirect()->intended('/home');
         }
 
-        if ($user && $accessToken && $refreshToken) {
-            Auth::login($user);
+        return back()->withErrors([
+            'email' => 'Email atau password salah.',
+        ])->withInput();
+    }
+    public function showRegisterForm()
+    {
+        return view('auth.register');
+    }
+    public function register(Request $request)
+    {
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
 
-            // Simpan cookie access & refresh token
-            Cookie::queue(cookie(
-                'access_token',
-                $accessToken,
-                5, // 5 menit
-                null,
-                null,
-                true,
-                true,
-                false,
-                'Strict'
-            ));
+        $user = User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
 
-            Cookie::queue(cookie(
-                'refresh_token',
-                $refreshToken,
-                60 * 24 * 7, // 7 hari
-                null,
-                null,
-                true,
-                true,
-                false,
-                'Strict'
-            ));
-        }
+        Auth::login($user);
 
         return redirect('/home');
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
-        $idToken = request()->cookie('access_token');
-
         Auth::logout();
-        Session::flush();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-        // Hapus cookie dengan meng-queue expired version
-        Cookie::queue(Cookie::forget('access_token'));
-        Cookie::queue(Cookie::forget('refresh_token'));
-
-        $redirectUri = urlencode('http://127.0.0.1:9001');
-        $logoutUrl = "https://sso.umjambi.ac.id/realms/sso/protocol/openid-connect/logout?post_logout_redirect_uri={$redirectUri}";
-
-        if ($idToken) {
-            $logoutUrl .= "&id_token_hint={$idToken}";
-        }
-
-        return redirect()->away($logoutUrl);
+        return redirect('/');
     }
 }

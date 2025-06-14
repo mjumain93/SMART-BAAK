@@ -22,19 +22,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/whatsapp', [WhatsAppController::class, 'index']);
-Route::post('/whatsapp/send-text', [WhatsAppController::class, 'sendText']);
-Route::post('/whatsapp/send-media', [WhatsAppController::class, 'sendMedia']);
-Route::post('/whatsapp/send-location', [WhatsAppController::class, 'sendLocation']);
-Route::post('/whatsapp/send-contact', [WhatsAppController::class, 'sendContact']);
-Route::post('/whatsapp/send-mention', [WhatsAppController::class, 'sendMention']);
-Route::post('/whatsapp/send-buttons', [WhatsAppController::class, 'sendButtons']);
-Route::post('/whatsapp/send-list', [WhatsAppController::class, 'sendList']);
-Route::post('/whatsapp/send-group-message', [WhatsAppController::class, 'sendGroupMessage']);
-Route::post('/whatsapp/blast-messages', [WhatsAppController::class, 'blastMessages']);
-
-Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-Route::get('/login/callback', [AuthController::class, 'attemptLogin'])->name('login.callback');
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login')->middleware('guest');
+Route::post('/login', [AuthController::class, 'login']);
+Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register')->middleware('guest');
+Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware('auth')->group(function () {

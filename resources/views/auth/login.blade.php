@@ -61,7 +61,7 @@
                                                     id="inputEmailAddress" placeholder="jhon@example.com">
                                                 @error('email')
                                                     <div class="invalid-feedback">
-                                                        {{ $message }}.
+                                                        {{ $message }}
                                                     </div>
                                                 @enderror
                                             </div>
