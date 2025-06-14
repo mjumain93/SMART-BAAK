@@ -289,8 +289,8 @@ class KrsController extends Controller
             }
 
             // $phone = $pegawai[$cek_jadwal->DosenID] ?? null;
-            // $phone = $pegawai[18] ?? null;
-            $phone = '120363321879606190@g.us';
+            $phone = $pegawai[18] ?? null;
+            // $phone = '120363321879606190@g.us';
 
             if (!isset($phone)) {
                 return response()->json([
