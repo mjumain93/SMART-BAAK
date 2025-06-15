@@ -162,12 +162,16 @@
                         return;
                     }
 
+                    let routeUpdate = "{{ route('laporan-nilai.update', ':id') }}";
+                    let urlUpdate = routeUpdate.replace(':id', idJadwal);
+
                     $.ajax({
-                        url: `{{ route('siade.updatenilai') }}`,
+                        url: urlUpdate,
                         method: 'POST',
                         data: {
+                            _token: $('meta[name="csrf-token"]').attr('content'),
+                            _method: 'PUT',
                             nim: nim,
-                            id_jadwal: idJadwal,
                             nilai_angka: number
                         },
                         success: function(response) {
@@ -222,8 +226,9 @@
                             });
                         },
                         error: function(xhr) {
+                            console.log(xhr.status);
+                            console.log(xhr.responseText);
                             alert("Gagal update: " + xhr.status);
-                            console.error(xhr.responseText);
                             td.text(original);
                         }
                     });
@@ -264,7 +269,7 @@
                         });
                     }
                 },
-                error: function(xhr) {                    
+                error: function(xhr) {
                     Lobibox.notify('error', {
                         sound: false,
                         pauseDelayOnHover: true,

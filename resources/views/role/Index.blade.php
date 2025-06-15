@@ -241,6 +241,5 @@
             });
         });
     </script>
-
     <script src="{{ asset('') }}assets/plugins/notifications/js/lobibox.min.js"></script>
 @endpush

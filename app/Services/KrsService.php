@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class KrsService
@@ -78,5 +79,18 @@ class KrsService
         }
 
         return $query->orderBy('a.nim')->get();
+    }
+    public function getTahuAkademik()
+    {
+        $tahunMulai = 2020;
+        $tahunAkhir = Carbon::now()->format('Y');
+
+        $tahun_akademik = [];
+
+        for ($i = $tahunMulai; $i <= $tahunAkhir; $i++) {
+            $tahun_akademik[] = $i . '1'; // Semester Ganjil
+            $tahun_akademik[] = $i . '2'; // Semester Genap
+        }
+        return $tahun_akademik;
     }
 }

@@ -7,6 +7,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\Siade\DataMahasiswaController;
 use App\Http\Controllers\Siade\KrsController;
+use App\Http\Controllers\Siade\LaporanNilaiController;
 use App\Http\Controllers\WhatsAppController;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -39,9 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('roles', RoleController::class)->except('show')->middleware('CheckPermission');
 
     Route::prefix('siade')->middleware('CheckPermission')->group(function () {
-        Route::get('/laporan-input-nilai-semester', [KrsController::class, 'LaporanNilaiSemester'])->name('siade.laporaninputnilaisemester');
-        Route::get('/detail-nilai-mahasiswa/{id}', [KrsController::class, 'detailNilai'])->name('siade.detailnilaimahasiswa');
-        Route::post('/update-nilai', [KrsController::class, 'updateNilai'])->name('siade.updatenilai');
+        Route::resource('laporan-nilai', LaporanNilaiController::class);
         Route::get('/krs-mahasiswa', [KrsController::class, 'KrsMahasiswa'])->name('siade.krsmahasiswa');
         Route::get('/data-mahasiswa', [DataMahasiswaController::class, 'data_mahasiswa'])->name('siade.datamahasiswa');
     });
@@ -51,5 +50,5 @@ Route::middleware('auth')->group(function () {
         Route::get('/export-krs', [NeoController::class, 'export_krs'])->name('neofeeder.exportkrs');
         Route::get('/get-kelas-perkuliahan', [NeoController::class, 'get_kelas_perkuliahan'])->name('neofeeder.getkelasperkuliahan');
     });
-    Route::post('/kirim-pesan', [KrsController::class, 'kirimPesan'])->name('kirim-pesan');
+    Route::post('/kirim-pesan', [WhatsAppController::class, 'kirimPesan'])->name('kirim-pesan');
 });
