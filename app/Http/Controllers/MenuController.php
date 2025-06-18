@@ -43,8 +43,9 @@ class MenuController extends Controller
                         'name' => $route->getName(),
                     ];
                 })
+                ->sortBy('name')
                 ->values();
-            $data['permissions'] = Permission::select('name', 'guard_name')->get();
+            $data['permissions'] = Permission::select('name', 'guard_name')->orderBy('name')->get();
             $data['parents'] = Menu::select('id', 'text')->get();
             return response()->json([
                 'error_code' => 0,
