@@ -342,7 +342,7 @@
             const formData = $(this).serialize() + (isEdit ? '&_method=PUT' : '');
 
             $.ajax({
-                url: `/menus/${menuId}`,
+                url: url,
                 method: 'POST',
                 data: formData,
                 headers: {
