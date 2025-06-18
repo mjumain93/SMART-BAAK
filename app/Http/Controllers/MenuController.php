@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Menu;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Permission;
@@ -65,7 +64,7 @@ class MenuController extends Controller
                 'parent' => 'nullable|string|max:255'
             ]);
 
-            $menu = User::create([
+            $menu = Menu::create([
                 'text' => $validated['name'],
                 'icon' => $validated['icon'] ?? 'bx bx-category',
                 'route' => $validated['route'] ?? null,
