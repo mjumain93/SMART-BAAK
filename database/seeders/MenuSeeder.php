@@ -68,6 +68,16 @@ class MenuSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'text' => 'Pengguna',
+                'route' => 'users.index',
+                'icon' => null,
+                'permission' => 'users-index',
+                'parent_id' => $pengaturanId,
+                'order' => 3,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 }

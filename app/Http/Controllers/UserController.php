@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Yajra\DataTables\Facades\DataTables;
 
-class RoleController extends Controller
+class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -16,26 +17,24 @@ class RoleController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $roles = Role::with(['permissions' => function ($query) {
-                $query->orderBy('name');
-            }])->orderBy('name')->get();
-            return DataTables::of($roles)
+            $users = User::with('roles')->orderBy('name')->get();
+            return DataTables::of($users)
                 ->addIndexColumn()
-                ->addColumn('permissions', function ($role) {
-                    return $role->permissions->map(function ($permission) {
-                        return '<span class="badge bg-primary rounded-pill me-1">' . $permission->name . '</span></br>';
+                ->addColumn('roles', function ($user) {
+                    return $user->roles->map(function ($role) {
+                        return '<span class="badge bg-primary rounded-pill me-1">' . $role->name . '</span></br>';
                     })->implode('');
                 })
-                ->addColumn('action', function ($role) {
-                    $btn = '<button type="button" data-id="' . $role->id . '" class="edit btn btn-primary btn-sm"><i class="bx bx-edit me-0"></i></button>';
-                    $btn .= ' <button type="button" data-id="' . $role->id . '" class="delete btn btn-danger btn-sm"><i class="bx bx-trash me-0"></i></button>';
+                ->addColumn('action', function ($user) {
+                    $btn = '<button type="button" data-id="' . $user->id . '" class="edit btn btn-primary btn-sm"><i class="bx bx-edit me-0"></i></button>';
+                    $btn .= ' <button type="button" data-id="' . $user->id . '" class="delete btn btn-danger btn-sm"><i class="bx bx-trash me-0"></i></button>';
                     return $btn;
                 })
-                ->rawColumns(['action', 'permissions'])
+                ->rawColumns(['action', 'roles'])
                 ->make(true);
         }
 
-        return view('role.Index');
+        return view('user.Index');
     }
 
     /**
@@ -44,7 +43,7 @@ class RoleController extends Controller
     public function create(Request $request)
     {
         if ($request->ajax()) {
-            $data['permissions'] = Permission::select('id', 'name', 'guard_name')->get();
+            $data['roles'] = Role::select('id', 'name', 'guard_name')->get();
             return response()->json([
                 'error_code' => 0,
                 'error_desc' => '',
@@ -52,6 +51,7 @@ class RoleController extends Controller
             ], 200);
         }
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -61,14 +61,20 @@ class RoleController extends Controller
         if ($request->ajax()) {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
-                'permission' => 'array',
+                'email' => 'required|email|unique:users',
+                'password' => 'required|min:6',
+                'role' => 'array',
             ]);
 
-            $role = Role::create(['name' => $validated['name']]);
-            if ($request->has('permission')) {
-                $role->syncPermissions($request->permission);
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+            ]);
+            if ($request->has('role')) {
+                $user->syncRoles($validated['role']);
             } else {
-                $role->syncPermissions([]);
+                $user->syncRoles([]);
             }
 
             return response()->json([
@@ -94,8 +100,8 @@ class RoleController extends Controller
     public function edit(Request $request)
     {
         if ($request->ajax()) {
-            $data['permissions'] = Permission::select('id', 'name', 'guard_name')->get();
-            $data['role'] = Role::with('permissions')->findOrFail($request->id);
+            $data['roles'] = Role::select('id', 'name', 'guard_name')->get();
+            $data['user'] = User::with('roles')->findOrFail($request->id);
             return response()->json([
                 'error_code' => 0,
                 'error_desc' => '',
@@ -110,21 +116,26 @@ class RoleController extends Controller
     public function update(Request $request, string $id)
     {
         if ($request->ajax()) {
+            $user = User::findOrFail($request->id);
             $validated = $request->validate([
-                'id' => 'required|exists:roles,id',
                 'name' => 'required|string|max:255',
-                'permission' => 'array',
+                'email' => 'required|email|unique:users,email,' . $user->id,
+                'password' => 'nullable|min:6',
+                'role' => 'array',
             ]);
 
-            $role = Role::findOrFail($validated['id']);
-            $role->name = $validated['name'];
-            $role->save();
+            $user->name = $validated['name'];
+            $user->email = $validated['email'];
+            if ($request->filled('password')) {
+                $user->password = Hash::make($request->password);
+            }
+            $user->save();
 
 
-            if ($request->has('permission')) {
-                $role->syncPermissions($request->permission);
+            if ($request->has('role')) {
+                $user->syncRoles($request->role);
             } else {
-                $role->syncPermissions([]);
+                $user->syncRoles([]);
             }
 
             return response()->json([
@@ -139,16 +150,17 @@ class RoleController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Role $role)
+    public function destroy(User $user)
     {
-        if ($role->id == 1) {
+        if (Auth::user()->id  == $user->id) {
             return response()->json([
                 'error_code' => 1,
-                'error_desc' => 'Role ini tidak dapat dihapus',
+                'error_desc' => 'Anda tidak dapat menghapus akun Anda sendiri.',
                 'message'    => 'Gagal menghapus pengguna',
             ], 403);
         }
-        $role->delete();
+
+        $user->delete();
         return response()->json([
             'error_code' => 0,
             'error_desc' => '',

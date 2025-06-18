@@ -8,6 +8,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\Siade\DataMahasiswaController;
 use App\Http\Controllers\Siade\KrsController;
 use App\Http\Controllers\Siade\LaporanNilaiController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\WhatsAppController;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -38,6 +39,7 @@ Route::middleware('auth')->group(function () {
     Route::post('menus/update-order', [MenuController::class, 'updateOrder'])->name('menus.updateOrder')->middleware('CheckPermission');
     Route::resource('permissions', PermissionController::class)->except('show', 'edit', 'update')->middleware('CheckPermission');
     Route::resource('roles', RoleController::class)->except('show')->middleware('CheckPermission');
+    Route::resource('users', UserController::class)->except('show')->middleware('CheckPermission');
 
     Route::prefix('siade')->middleware('CheckPermission')->group(function () {
         Route::resource('laporan-nilai', LaporanNilaiController::class);

@@ -36,6 +36,12 @@ class PermissionsSeeder extends Seeder
             'menus-edit',
             'menus-update',
             'menus-destroy',
+            'users-index',
+            'users-create',
+            'users-store',
+            'users-edit',
+            'users-update',
+            'users-destroy',
         ];
 
         foreach ($permissions as $permission) {
