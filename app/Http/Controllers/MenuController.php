@@ -72,6 +72,15 @@ class MenuController extends Controller
                 'parent_id' => $validated['parent'] ?? null,
             ]);
 
+            if (!$menu) {
+                return response()->json([
+                    'error_code' => 1,
+                    'error_desc' => '',
+                    'message' => 'Gagal',
+                    'data' => $menu
+                ], 401);
+            }
+
             return response()->json([
                 'error_code' => 0,
                 'error_desc' => '',
