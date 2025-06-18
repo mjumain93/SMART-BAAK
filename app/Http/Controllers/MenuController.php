@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Menu;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Permission;
@@ -64,14 +65,13 @@ class MenuController extends Controller
                 'parent' => 'nullable|string|max:255'
             ]);
 
-            $menu = new Menu();
-            $menu->text = $validated['name'];
-            $menu->icon = $validated['icon'] ?? 'bx bx-category';
-            $menu->route = $validated['route'] ?? null;
-            $menu->permission = $validated['permission'] ?? null;
-            $menu->parent_id = $validated['parent'] ?? null;
-
-            $menu->save();
+            $menu = User::create([
+                'text' => $validated['name'],
+                'icon' => $validated['icon'] ?? 'bx bx-category',
+                'route' => $validated['route'] ?? null,
+                'permission' => $validated['permission'] ?? null,
+                'parent_id' => $validated['parent'] ?? null,
+            ]);
 
             return response()->json([
                 'error_code' => 0,

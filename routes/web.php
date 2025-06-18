@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\Neo\NeoController;
 use App\Http\Controllers\PermissionController;
@@ -31,8 +32,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::resource('menus', MenuController::class)->except('show')->middleware('CheckPermission');
     Route::get('menus/json', [MenuController::class, 'getMenuJson'])->name('menus.json')->middleware('CheckPermission');
     Route::get('menus/sort', [MenuController::class, 'menuSort'])->name('menus.sort')->middleware('CheckPermission');
