@@ -17,9 +17,17 @@
     <!-- Bootstrap CSS -->
     <link href="{{ asset('') }}assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('') }}assets/css/bootstrap-extended.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <link href="{{ asset('') }}assets/css/app.css" rel="stylesheet">
     <link href="{{ asset('') }}assets/css/icons.css" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Poppins' !important;
+            font-weight: 500;
+            /* atau 600 / 700 */
+        }
+    </style>
     <title>SMART UM JAMBI</title>
 </head>
 
@@ -58,7 +66,7 @@
                                                 <label for="inputName" class="form-label">Nama Lengkap</label>
                                                 <input type="text" name="name"
                                                     class="form-control @error('name') is-invalid @enderror"
-                                                    id="inputName" placeholder="Jhon">
+                                                    id="inputName" placeholder="Nama Lengkap">
                                                 @error('name')
                                                     <div class="invalid-feedback">
                                                         {{ $message }}.
@@ -92,12 +100,12 @@
                                                 </div>
                                             </div>
                                             <div class="col-12">
-                                                <label for="inputChoosePassword" class="form-label">Ulangi
+                                                <label for="show_hide_password_confirm" class="form-label">Ulangi
                                                     Password</label>
-                                                <div class="input-group" id="show_hide_password">
+                                                <div class="input-group" id="show_hide_password_confirm">
                                                     <input type="password" name="password_confirmation"
                                                         class="form-control border-end-0 @error('password_confirmation') is-invalid @enderror"
-                                                        id="inputChoosePassword" placeholder="Enter Password"> <a
+                                                        id="show_hide_password_confirm" placeholder="Enter Password"> <a
                                                         href="javascript:;" class="input-group-text bg-transparent"><i
                                                             class='bx bx-hide'></i></a>
                                                     @error('password_confirmation')
@@ -122,8 +130,8 @@
                                             </div>
                                             <div class="col-12">
                                                 <div class="text-center ">
-                                                    <p class="mb-0">Already have an account? <a
-                                                            href="{{ route('login') }}">Sign in here</a></p>
+                                                    <p class="mb-0">Sudah memiliki akun? <a
+                                                            href="{{ route('login') }}">Masuk disini</a></p>
                                                 </div>
                                             </div>
                                         </form>
@@ -143,9 +151,6 @@
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <!--plugins-->
     <script src="assets/js/jquery.min.js"></script>
-    <script src="assets/plugins/simplebar/js/simplebar.min.js"></script>
-    <script src="assets/plugins/metismenu/js/metisMenu.min.js"></script>
-    <script src="assets/plugins/perfect-scrollbar/js/perfect-scrollbar.js"></script>
     <!--Password show & hide js -->
     <script>
         $(document).ready(function() {
@@ -161,10 +166,20 @@
                     $('#show_hide_password i').addClass("bx-show");
                 }
             });
+            $("#show_hide_password_confirm a").on('click', function(event) {
+                event.preventDefault();
+                if ($('#show_hide_password_confirm input').attr("type") == "text") {
+                    $('#show_hide_password_confirm input').attr('type', 'password');
+                    $('#show_hide_password_confirm i').addClass("bx-hide");
+                    $('#show_hide_password_confirm i').removeClass("bx-show");
+                } else if ($('#show_hide_password_confirm input').attr("type") == "password") {
+                    $('#show_hide_password_confirm input').attr('type', 'text');
+                    $('#show_hide_password_confirm i').removeClass("bx-hide");
+                    $('#show_hide_password_confirm i').addClass("bx-show");
+                }
+            });
         });
     </script>
-    <!--app JS-->
-    <script src="{{ asset('') }}assets/js/app.js"></script>
 </body>
 
 </html>

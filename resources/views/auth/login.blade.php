@@ -17,9 +17,17 @@
     <!-- Bootstrap CSS -->
     <link href="{{ asset('') }}assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('') }}assets/css/bootstrap-extended.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <link href="{{ asset('') }}assets/css/app.css" rel="stylesheet">
     <link href="{{ asset('') }}assets/css/icons.css" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Poppins' !important;
+            font-weight: 500;
+            /* atau 600 / 700 */
+        }
+    </style>
     <title>SMART UM JAMBI</title>
 </head>
 
@@ -55,8 +63,8 @@
                                         <form class="row g-3" action="{{ route('login') }}" method="POST">
                                             @csrf
                                             <div class="col-12">
-                                                <label for="inputEmailAddress" class="form-label">Email</label>
-                                                <input type="email" name="email"
+                                                <label for="inputEmailAddress" class="form-label">NIDN/NIP</label>
+                                                <input type="text" name="email"
                                                     class="form-control @error('email') is-invalid @enderror"
                                                     id="inputEmailAddress" placeholder="jhon@example.com">
                                                 @error('email')
@@ -84,7 +92,7 @@
                                                 </div>
                                             </div>
                                             <div class="col-md-6 text-end"> <a
-                                                    href="authentication-forgot-password.html">Forgot Password ?</a>
+                                                    href="authentication-forgot-password.html">Lupa Password ?</a>
                                             </div>
                                             <div class="col-12">
                                                 <div class="d-grid">
@@ -93,8 +101,8 @@
                                             </div>
                                             <div class="col-12">
                                                 <div class="text-center ">
-                                                    <p class="mb-0">Don't have an account yet? <a
-                                                            href="{{ route('register') }}">Sign up here</a>
+                                                    <p class="mb-0">Belum memiliki akun? <a
+                                                            href="{{ route('register') }}">Daftar disini</a>
                                                     </p>
                                                 </div>
                                             </div>
@@ -115,8 +123,6 @@
     <script src="{{ asset('') }}assets/js/bootstrap.bundle.min.js"></script>
     <!--plugins-->
     <script src="{{ asset('') }}assets/js/jquery.min.js"></script>
-    <script src="{{ asset('') }}assets/plugins/simplebar/js/simplebar.min.js"></script>
-    <script src="{{ asset('') }}assets/plugins/metismenu/js/metisMenu.min.js"></script>
     <!--Password show & hide js -->
     <script>
         $(document).ready(function() {
@@ -134,8 +140,6 @@
             });
         });
     </script>
-    <!--app JS-->
-    <script src="{{ asset('') }}assets/js/app.js"></script>
 </body>
 
 </html>

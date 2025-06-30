@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Str;
@@ -15,23 +16,25 @@ class AuthController extends Controller
 {
     public function showLoginForm()
     {
-        return view('auth.login');
+        return Socialite::driver('keycloak')->redirect();
     }
-    public function login(Request $request)
+    public function callback()
     {
-        $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required',
-        ]);
+        $socialiteUser  = Socialite::driver('keycloak')->user();
+        session(['keycloak_access_token' => $socialiteUser->token]);
+        session(['keycloak_refresh_token' => $socialiteUser->refreshToken]);
+        session(['keycloak_id_token' => $socialiteUser->accessTokenResponseBody['id_token'] ?? null]);
+        $user = User::where('email', $socialiteUser->getEmail())->first();
 
-        if (Auth::attempt($request->only('email', 'password'))) {
-            $request->session()->regenerate();
-            return redirect()->intended('/home');
+        if (!$user) {
+            $user = User::create([
+                'name' => $socialiteUser->getName(),
+                'email' => $socialiteUser->getEmail(),
+                'password' => '1234'
+            ]);
         }
-
-        return back()->withErrors([
-            'email' => 'Email atau password salah.',
-        ])->withInput();
+        Auth::login($user);
+        return redirect('/home');
     }
     public function showRegisterForm()
     {
@@ -58,10 +61,27 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $idIoken = session('keycloak_id_token'); // ID Token yang disimpan di sesi
 
-        return redirect('/');
+        if (!$idIoken) {
+            Auth::logout();
+            session()->invalidate();
+            session()->regenerateToken();
+            return redirect('/'); // Redirect ke halaman utama atau halaman login
+        }
+        Auth::logout();
+        session()->invalidate();
+        session()->regenerateToken();
+        $keycloakLogoutUrl = env('KEYCLOAK_BASE_URL') . '/realms/' . env('KEYCLOAK_REALM') . '/protocol/openid-connect/logout';
+        $redirectUri = urlencode(env('APP_URL')); // Arahkan ke halaman utama aplikasi Laravel setelah logout
+        $logoutUrl = $keycloakLogoutUrl . '?id_token_hint=' . $idIoken . '&post_logout_redirect_uri=' . $redirectUri;
+        return redirect()->to($logoutUrl);
+    }
+    private function getUserInfo($accessToken)
+    {
+        $response = Http::withToken($accessToken)
+            ->get(env('KEYCLOAK_BASE_URL') . '/realms/' . env('KEYCLOAK_REALM') . '/protocol/openid-connect/userinfo');
+
+        return $response->json();
     }
 }
