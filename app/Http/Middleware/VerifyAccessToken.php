@@ -2,12 +2,11 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\User;
 use Closure;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Session;
 use Symfony\Component\HttpFoundation\Response;
 
 class VerifyAccessToken
@@ -19,33 +18,25 @@ class VerifyAccessToken
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // $token = session('token');
+        $accessToken = Session::get('access_token');
 
-        // if (!$token) {
-        //     return redirect()->route('login')->withErrors(['auth' => 'Token tidak ditemukan']);
-        // }
+        if (!$accessToken) {
+            return response()->json(['error' => 'Token not provided'], 401);
+        }
 
-        // $response = Http::withToken($token)
-        //     ->acceptJson()
-        //     ->get('https://sso.umjambi.ac.id/api/me');
+        try {
+            $key = new Key(env('JWT_SECRET'), 'HS256');
+            $decoded = JWT::decode($accessToken, $key);
 
-        // if ($response->unauthorized()) {
-        //     session()->forget('token');
-        //     return redirect()->route('login')->withErrors(['auth' => 'Token tidak valid']);
-        // }
+            $exp = $decoded->exp;
 
-        // $userData = $response->json('data');
+            if ($exp < time()) {
+                return response()->json(['error' => 'Token has expired'], 401);
+            }
 
-        // // Cari atau buat user lokal berdasarkan email
-        // $localUser = User::firstOrCreate(
-        //     ['email' => $userData['email']],
-        //     ['name' => $userData['name'], 'password' => Hash::make('usususus')]
-        // );
-        // Auth::login($localUser);
-
-        // // Inject user lokal ke request
-        // $request->merge(['user' => $userData, 'auth_user' => $localUser]);
-
-        return $next($request);
+            return $next($request);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Invalid token'], 401);
+        }
     }
 }

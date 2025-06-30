@@ -25,17 +25,13 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login')->middleware('guest');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login')->middleware('guest');
-Route::get('/callback', [AuthController::class, 'callback'])->name('callback')->middleware('guest');
-
-
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register')->middleware('guest');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::middleware(['CheckToken','auth'])->group(function () {
+Route::middleware(['CheckToken', 'auth'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::resource('menus', MenuController::class)->except('show')->middleware('CheckPermission');
     Route::get('menus/json', [MenuController::class, 'getMenuJson'])->name('menus.json')->middleware('CheckPermission');

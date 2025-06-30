@@ -3,42 +3,67 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
-use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
     public function showLoginForm()
     {
-        return Socialite::driver('keycloak')->redirect();
-    }
-    public function callback()
-    {
-        $socialiteUser  = Socialite::driver('keycloak')->user();
-        session(['keycloak_access_token' => $socialiteUser->token]);
-        session(['keycloak_refresh_token' => $socialiteUser->refreshToken]);
-        session(['keycloak_id_token' => $socialiteUser->accessTokenResponseBody['id_token'] ?? null]);
-        $user = User::where('email', $socialiteUser->getEmail())->first();
-
-        if (!$user) {
-            $user = User::create([
-                'name' => $socialiteUser->getName(),
-                'email' => $socialiteUser->getEmail(),
-                'password' => '1234'
-            ]);
-        }
-        Auth::login($user);
-        return redirect('/home');
+        return view('auth.login');
     }
     public function showRegisterForm()
     {
         return view('auth.register');
+    }
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|string',
+            'password' => 'required|string',
+        ], [
+            'email.required' => 'Email atau username wajib diisi.',
+            'email.string'   => 'Format email atau username tidak valid.',
+            'password.required' => 'Password wajib diisi.',
+            'password.string'   => 'Format password tidak valid.',
+        ]);
+        $response = Http::post('https://sso.umjambi.ac.id/api/auth/login', [
+            'username' => $request->email,
+            'password' => $request->password,
+        ])->json();
+
+        if ($response['success'] == true) {
+            Session::put('access_token', $response['data']['access_token']);
+            $accessToken = Session::get('access_token');
+
+            $key = new Key(env('JWT_SECRET'), 'HS256');
+            $decoded = JWT::decode($accessToken, $key);
+
+            $user = User::firstOrCreate(
+                ['email' => $decoded->nik],
+                [
+                    'name'     => $decoded->nama_lengkap,
+                    'password' => Hash::make(Str::random(16)),
+                ]
+            );
+
+            if ($user->wasRecentlyCreated) {
+                $user->assignRole('superadmin');
+            }
+
+            Auth::login($user);
+
+            return redirect()->route('home');
+        } else {
+            return back()->withErrors(['email' => 'NIDN/NIP tidak ditemukan di sistem.']);
+        }
+        return redirect()->route('home');
     }
     public function register(Request $request)
     {

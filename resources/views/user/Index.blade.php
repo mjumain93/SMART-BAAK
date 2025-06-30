@@ -16,7 +16,7 @@
                         <tr>
                             <th>NO</th>
                             <th>NAMA LENGKAP</th>
-                            <th>EMAIL</th>
+                            <th>NIK/EMAIL</th>
                             <th>ROLE PENGGUNA</th>
                             <th>AKSI</th>
                         </tr>
