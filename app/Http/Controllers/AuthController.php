@@ -14,99 +14,58 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
+    protected $ssoUrl;
+    public function __construct()
+    {
+        $this->ssoUrl = 'https://sso.umjambi.ac.id/login?redirect_uri=' . urlencode('http://smart.umjambi.ac.id/callback');
+    }
     public function showLoginForm()
     {
-        return view('auth.login');
+        return redirect($this->ssoUrl);
     }
     public function showRegisterForm()
     {
         return view('auth.register');
     }
-    public function login(Request $request)
+    public function callback(Request $request)
     {
-        $request->validate([
-            'email' => 'required|string',
-            'password' => 'required|string',
-        ], [
-            'email.required' => 'Email atau username wajib diisi.',
-            'email.string'   => 'Format email atau username tidak valid.',
-            'password.required' => 'Password wajib diisi.',
-            'password.string'   => 'Format password tidak valid.',
-        ]);
-        $response = Http::post('https://sso.umjambi.ac.id/api/auth/login', [
-            'username' => $request->email,
-            'password' => $request->password,
-        ])->json();
+        $token = $request->query('token');
 
-        if ($response['success'] == true) {
-            Session::put('access_token', $response['data']['access_token']);
-            $accessToken = Session::get('access_token');
+        if (!$token) {
+            return redirect('/login')->with('error', 'Token tidak ditemukan');
+        }
 
-            $key = new Key(env('JWT_SECRET'), 'HS256');
-            $decoded = JWT::decode($accessToken, $key);
+        try {
+            $response = Http::withToken($token)->get('https://sso.umjambi.ac.id/me');
+            if ($response->ok()) {
+                $user = $response->json()['user'];
 
-            $user = User::firstOrCreate(
-                ['email' => $decoded->nik],
-                [
-                    'name'     => $decoded->nama_lengkap,
-                    'password' => Hash::make(Str::random(16)),
-                ]
-            );
+                $auth = User::firstOrCreate(
+                    [
+                        'email' => $user['email_pribadi'],
+                    ],
+                    [
+                        'name' => $user['nama_lengkap'],
+                        'password' => Hash::make(Str::random(16))
+                    ]
+                );
 
-            if ($user->wasRecentlyCreated) {
-                $user->assignRole('superadmin');
+                session(['token' => $token]);
+                Auth::guard('web')->login($auth);
+
+                return redirect('/home');
+            } else {
+                return redirect('/login')->with('error', 'Gagal mengambil data pengguna dari SSO');
             }
-
-            Auth::login($user);
-
-            return redirect()->route('home');
-        } else {
-            return back()->withErrors(['email' => 'NIDN/NIP tidak ditemukan di sistem.']);
+        } catch (\Exception $e) {
+            return redirect('/login')->with('error', 'Token tidak valid atau sudah kedaluwarsa');
         }
-        return redirect()->route('home');
-    }
-    public function register(Request $request)
-    {
-        $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
-
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        Auth::login($user);
-
-        return redirect('/home');
     }
 
-    public function logout(Request $request)
+    public function logout()
     {
-        $idIoken = session('keycloak_id_token'); // ID Token yang disimpan di sesi
-
-        if (!$idIoken) {
-            Auth::logout();
-            session()->invalidate();
-            session()->regenerateToken();
-            return redirect('/'); // Redirect ke halaman utama atau halaman login
-        }
+        Session::flush();
         Auth::logout();
-        session()->invalidate();
-        session()->regenerateToken();
-        $keycloakLogoutUrl = env('KEYCLOAK_BASE_URL') . '/realms/' . env('KEYCLOAK_REALM') . '/protocol/openid-connect/logout';
-        $redirectUri = urlencode(env('APP_URL')); // Arahkan ke halaman utama aplikasi Laravel setelah logout
-        $logoutUrl = $keycloakLogoutUrl . '?id_token_hint=' . $idIoken . '&post_logout_redirect_uri=' . $redirectUri;
-        return redirect()->to($logoutUrl);
-    }
-    private function getUserInfo($accessToken)
-    {
-        $response = Http::withToken($accessToken)
-            ->get(env('KEYCLOAK_BASE_URL') . '/realms/' . env('KEYCLOAK_REALM') . '/protocol/openid-connect/userinfo');
-
-        return $response->json();
+        return redirect('/login');
     }
 }
