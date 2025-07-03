@@ -17,7 +17,7 @@ class AuthController extends Controller
     protected $ssoUrl;
     public function __construct()
     {
-        $this->ssoUrl = 'https://sso.umjambi.ac.id/login?redirect_uri=' . urlencode('http://localhost:8000/callback');
+        $this->ssoUrl = 'https://sso.umjambi.ac.id/login?redirect_uri=' . urlencode('https://smart.umjambi.ac.id/callback');
     }
     public function showLoginForm()
     {
