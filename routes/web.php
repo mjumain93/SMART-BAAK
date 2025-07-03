@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Dosen\InputNilaiController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\Neo\NeoController;
@@ -40,6 +41,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('roles', RoleController::class)->except('show')->middleware('CheckPermission');
     Route::resource('users', UserController::class)->except('show')->middleware('CheckPermission');
 
+    Route::prefix('dosen')->middleware('CheckPermission')->group(function () {
+        Route::resource('input-nilai', InputNilaiController::class);
+    });
     Route::prefix('siade')->middleware('CheckPermission')->group(function () {
         Route::resource('laporan-nilai', LaporanNilaiController::class);
         Route::get('/krs-mahasiswa', [KrsController::class, 'KrsMahasiswa'])->name('siade.krsmahasiswa');

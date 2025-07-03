@@ -17,15 +17,11 @@ class AuthController extends Controller
     protected $ssoUrl;
     public function __construct()
     {
-        $this->ssoUrl = 'https://sso.umjambi.ac.id/login?redirect_uri=' . urlencode('https://smart.umjambi.ac.id/callback');
+        $this->ssoUrl = 'https://sso.umjambi.ac.id/login?redirect_uri=' . urlencode('http://localhost:8000/callback');
     }
     public function showLoginForm()
     {
         return redirect($this->ssoUrl);
-    }
-    public function showRegisterForm()
-    {
-        return view('auth.register');
     }
     public function callback(Request $request)
     {
@@ -39,7 +35,6 @@ class AuthController extends Controller
             $response = Http::withToken($token)->get('https://sso.umjambi.ac.id/me');
             if ($response->ok()) {
                 $user = $response->json()['user'];
-
                 $auth = User::firstOrCreate(
                     [
                         'email' => $user['email_pribadi'],
@@ -49,8 +44,10 @@ class AuthController extends Controller
                         'password' => Hash::make(Str::random(16))
                     ]
                 );
-
-                session(['token' => $token]);
+                if ($auth->wasRecentlyCreated) {
+                    $auth->assignRole('superadmin');
+                }
+                session(['access_token' => $token]);
                 Auth::guard('web')->login($auth);
 
                 return redirect('/home');
@@ -64,8 +61,20 @@ class AuthController extends Controller
 
     public function logout()
     {
-        Session::flush();
+        $token = Session::get('sso_token');
+
+        if ($token) {
+            try {
+                Http::withToken($token)->post('https://sso.umjambi.ac.id/logout');
+            } catch (\Exception $e) {
+                // Optional: log error
+            }
+        }
+
         Auth::logout();
-        return redirect('/login');
+        Session::forget('sso_token');
+        Session::flush();
+
+        return redirect('/')->with('message', 'Logout berhasil');
     }
 }
