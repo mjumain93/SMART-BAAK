@@ -36,15 +36,8 @@
                 </div>
                 <div class="modal-body">
                     <form class="row g-3" id="formMenu">
-                        <input type="hidden" id="id" name="id">
-                        <div class="col-md-12">
-                            <label for="permission" class="form-label">Permission Route</label>
-                            <select id="permission" class="form-select" name="permission">
-                                <option selected>Choose...</option>
-                                <option>One</option>
-                                <option>Two</option>
-                                <option>Three</option>
-                            </select>
+                        <div class="col-md-12 mb-2">
+                            <div id="permission"></div>
                         </div>
                     </form>
                 </div>
@@ -91,78 +84,27 @@
                 }
             ]
         });
-        
+
         let path = 'permissions';
 
         $(document).on('click', '#add', function(e) {
             const url = `/${path}/create`;
             $('#dataTitle').text('TAMBAH PERMISSION');
-            $('#id').val('');
-            $('#permission').empty().append('<option value="">-- Pilih Permission --</option>');
             $.ajax({
                 url: url,
                 dataType: 'json',
                 success: function(response) {
+                    const existing = response.data.existing_permissions;
                     response.data.routes.forEach(permission => {
-                        $('#permission').append(
-                            `<option value="${permission.name }">${permission.name }</option>`
-                        );
-                    });
-
-                    const myModal = new bootstrap.Modal(document.getElementById('modalMenu'));
-                    myModal.show();
-                },
-                error: function(xhr, status, error) {
-                    document.getElementById('dataBody').innerHTML =
-                        'Gagal mengambil data. Silakan coba lagi.';
-                    console.error('AJAX Error:', error);
-                }
-            });
-        });
-
-        $(document).on('click', '.edit', function(e) {
-            const id = $(this).data('id');
-            const url = `/${path}/${id}/edit`;
-            $.ajax({
-                url: url,
-                data: {
-                    id: id
-                },
-                dataType: 'json',
-                success: function(response) {
-                    const menu = response.data.menu;
-                    $('#dataTitle').text('EDIT MENU');
-                    $('#menu_id').val(menu.id);
-                    $('#name').val(menu.text);
-                    $('#icon').val(menu.icon);
-
-                    $('#route').empty().append('<option value="">-- Pilih Route --</option>');
-
-                    response.data.routes.forEach(route => {
-                        const selected = route.name === menu.route ? 'selected' : '';
-                        $('#route').append(
-                            `<option value="${route.name }" ${selected}>${route.name }</option>`
-                        );
-                    });
-
-                    $('#permission').empty().append('<option value="">-- Pilih Permission --</option>');
-
-                    response.data.permissions.forEach(permission => {
-                        const selected = permission.name === menu.permission ? 'selected' : '';
-                        $('#permission').append(
-                            `<option value="${permission.name }" ${selected}>${permission.name }</option>`
-                        );
-                    });
-
-                    $('#parent').empty().append('<option value="">-- Pilih Parent --</option>');
-
-                    response.data.parents.forEach(parent => {
-                        const selected = parent.id === menu.parent_id ? 'selected' : '';
-                        if (parent.text !== menu.text) {
-                            $('#parent').append(
-                                `<option value="${parent.id }" ${selected}>${parent.text }</option>`
-                            );
-                        }
+                        const isChecked = existing.includes(permission.name) ? 'checked' : '';
+                        $('#permission').append(`
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="permissions[]" value="${permission.name}" id="perm-${permission.name}" ${isChecked}>
+                                <label class="form-check-label" for="perm-${permission.name}">
+                                    ${permission.name}
+                                </label>
+                            </div>
+                        `);
                     });
 
                     const myModal = new bootstrap.Modal(document.getElementById('modalMenu'));
@@ -216,12 +158,8 @@
 
         $('#formMenu').on('submit', function(e) {
             e.preventDefault();
-
-            const id = $('#id').val();
-            const isEdit = id !== '';
-            const url = isEdit ? `/${path}/${id}` : `/${path}`;
-            const method = isEdit ? 'PUT' : 'POST';
-            const formData = $(this).serialize() + (isEdit ? '&_method=PUT' : '');
+            const url = `/${path}`;;
+            const formData = $(this).serialize();
 
             $.ajax({
                 url: url,

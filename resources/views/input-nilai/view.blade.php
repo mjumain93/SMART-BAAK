@@ -95,7 +95,7 @@
                     extend: 'copy',
                     title: '',
                     header: false,
-                    text: '<i class="bx bx-copy-alt" title="Salin ke clipboard"></i>',
+                    text: '<i class="bx bx-copy-alt me-0" title="Salin ke clipboard"></i>',
                     exportOptions: {
                         columns: ':visible',
                     },
@@ -114,7 +114,7 @@
                 }, {
                     extend: 'pdf',
                     title: '',
-                    text: '<i class="bx bx-file" title="Export ke PDF"></i>',
+                    text: '<i class="bx bx-file  me-0" title="Export ke PDF"></i>',
                     orientation: 'landscape',
                     pageSize: 'A4',
                     exportOptions: {
@@ -147,6 +147,12 @@
                         if (doc.defaultStyle) {
                             doc.defaultStyle.fontSize = 10;
                         }
+                    },
+
+                }, {
+                    text: '<i class="bx bx-refresh  me-0" title="Refresh Table"></i>',
+                    action: function(e, dt, node, config) {
+                        dt.ajax.reload(null, false);
                     }
                 }],
                 ajax: {
@@ -157,8 +163,6 @@
                     },
                     complete: function(xhr, status) {
                         if (xhr.status === 200) {
-                            console.log('DataTable loaded successfully.');
-                            console.log('Returned data:', xhr.responseJSON || xhr.responseText);
                         }
                     },
                     error: function(xhr, error, thrown) {

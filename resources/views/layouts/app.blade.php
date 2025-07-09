@@ -14,8 +14,6 @@
     <script src="{{ asset('') }}assets/js/pace.min.js"></script>
     <link href="{{ asset('') }}assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('') }}assets/css/bootstrap-extended.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
     @stack('css')
     <link href="{{ asset('') }}assets/css/app.css" rel="stylesheet">
     <link href="{{ asset('') }}assets/css/icons.css" rel="stylesheet">
@@ -24,9 +22,7 @@
     <link rel="stylesheet" href="{{ asset('') }}assets/css/header-colors.css" />
     <style>
         * {
-            font-family: 'Poppins' !important;
             font-weight: 500;
-            /* atau 600 / 700 */
         }
 
         .dt-button-info {
@@ -43,7 +39,7 @@
                     <img src="{{ asset('') }}assets/images/favicon-32x32.png" class="logo-icon" alt="logo icon">
                 </div>
                 <div>
-                    <h4 class="logo-text">BAAK</h4>
+                    <h4 class="logo-text">SIAKAD</h4>
                 </div>
                 <div class="toggle-icon ms-auto"><i class='bx bx-arrow-back'></i>
                 </div>
@@ -71,10 +67,10 @@
                             </li>
 
                             <li class="nav-item dropdown dropdown-large">
-                                <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative"
+                                {{-- <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative"
                                     href="#" data-bs-toggle="dropdown"><span class="alert-count">7</span>
                                     <i class='bx bx-bell'></i>
-                                </a>
+                                </a> --}}
                                 <div class="dropdown-menu dropdown-menu-end">
                                     <a href="javascript:;">
                                         <div class="msg-header">
@@ -83,7 +79,7 @@
                                         </div>
                                     </a>
                                     <div class="header-notifications-list">
-                                        <a class="dropdown-item" href="javascript:;">
+                                        {{-- <a class="dropdown-item" href="javascript:;">
                                             <div class="d-flex align-items-center">
                                                 <div class="user-online">
                                                     <img src="{{ asset('') }}assets/images/avatars/avatar-1.png"
@@ -122,13 +118,13 @@
                                                     <p class="msg-info">Many desktop publishing packages</p>
                                                 </div>
                                             </div>
-                                        </a>
+                                        </a> --}}
                                     </div>
-                                    <a href="javascript:;">
+                                    {{-- <a href="javascript:;">
                                         <div class="text-center msg-footer">
                                             <button class="btn btn-primary w-100">View All Notifications</button>
                                         </div>
-                                    </a>
+                                    </a> --}}
                                 </div>
                             </li>
                             <li class="nav-item dropdown dropdown-large">

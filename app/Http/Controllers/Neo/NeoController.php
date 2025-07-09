@@ -42,7 +42,7 @@ class NeoController extends Controller
         ], 200);
     }
 
-    private function kelas_perkuliahan($idProdi = null, $tahun_akademik = null)
+    private function kelasPerkuliahan($idProdi = null, $tahun_akademik = null)
     {
         $data = [
             "act" => "GetListKelasKuliah",
@@ -69,7 +69,7 @@ class NeoController extends Controller
         ], 200);
     }
 
-    public function export_krs(Request $request)
+    public function exportKrs(Request $request)
     {
         $error = [];
         $prodiJson = $this->neofeeder->getProdi();
@@ -195,7 +195,7 @@ class NeoController extends Controller
         return view('neo.ExportKrs', $data);
     }
 
-    public function get_kelas_perkuliahan(Request $request)
+    public function getKelasPerkuliahan(Request $request)
     {
         if ($request->filled('program_studi') && $request->filled('tahun_akademik')) {
 

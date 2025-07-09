@@ -16,12 +16,8 @@ class PermissionController extends Controller
     {
         if ($request->ajax()) {
             $query = Permission::query();
-
             return DataTables::of($query)
                 ->addIndexColumn()
-                ->addColumn('parent_text', function ($menu) {
-                    return $menu->parent ? $menu->parent->text : '-';
-                })
                 ->addColumn('action', function ($menu) {
                     $btn = '';
                     $btn .= ' <button type="button" data-id="' . $menu->id . '" class="delete btn btn-danger btn-sm"><i class="bx bx-trash me-0"></i></button>';
@@ -50,6 +46,7 @@ class PermissionController extends Controller
                     ];
                 })
                 ->values();
+            $data['existing_permissions'] = Permission::pluck('name')->toArray();
             return response()->json([
                 'error_code' => 0,
                 'error_desc' => '',
@@ -64,22 +61,37 @@ class PermissionController extends Controller
     public function store(Request $request)
     {
         if ($request->ajax()) {
+
             $validated = $request->validate([
-                'permission' => 'required|string|max:255',
+                'permissions' => 'nullable|array',
+                'permissions.*' => 'string|max:255',
             ]);
 
-            $formattedPermission = preg_replace('/[.,\s]+/', '-', $validated['permission']);
+            $existingPermissions = Permission::pluck('name')->toArray();
+            $inputPermissions = $validated['permissions'] ?? [];
 
-            $query = new Permission();
-            $query->name = $formattedPermission;
-            $query->guard_name = 'web';
-            $query->save();
+            Permission::whereNotIn('name', $inputPermissions)->delete();
+
+            $toInsert = [];
+
+            foreach (array_diff($inputPermissions, $existingPermissions) as $name) {
+                $toInsert[] = [
+                    'name' => $name,
+                    'guard_name' => 'web',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+
+            if (!empty($toInsert)) {
+                Permission::insert($toInsert);
+            }
 
             return response()->json([
                 'error_code' => 0,
                 'error_desc' => '',
                 'message' => 'Data berhasil disimpan',
-                'data' => $query
+                'data' => []
             ], 200);
         }
     }

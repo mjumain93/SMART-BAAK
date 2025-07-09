@@ -31,7 +31,7 @@ Route::get('/callback', [AuthController::class, 'callback'])->name('callback');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'CheckToken'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::resource('menus', MenuController::class)->except('show')->middleware('CheckPermission');
     Route::get('menus/json', [MenuController::class, 'getMenuJson'])->name('menus.json')->middleware('CheckPermission');
@@ -41,19 +41,30 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('roles', RoleController::class)->except('show')->middleware('CheckPermission');
     Route::resource('users', UserController::class)->except('show')->middleware('CheckPermission');
 
-    Route::prefix('dosen')->middleware('CheckPermission')->group(function () {
-        Route::resource('input-nilai', InputNilaiController::class);
+    Route::prefix('dosen')->middleware(['CheckPermission', 'CheckToken'])->group(function () {
+        Route::name('dosen.')->group(function () {
+            Route::resource('input-nilai', InputNilaiController::class)->except('store','edit','destroy');
+            Route::post('input-nilai/{id}/preview', [InputNilaiController::class, 'preview'])->name('input-nilai.preview');
+            Route::get('input-nilai/{id}/download-template', [InputNilaiController::class, 'downloadTemplate'])->name('input-nilai.download-template');
+            Route::get('input-nilai/{id}/export', [InputNilaiController::class, 'export'])->name('input-nilai.export');
+        });
     });
+
     Route::prefix('siade')->middleware('CheckPermission')->group(function () {
-        Route::resource('laporan-nilai', LaporanNilaiController::class);
-        Route::get('/krs-mahasiswa', [KrsController::class, 'KrsMahasiswa'])->name('siade.krsmahasiswa');
-        Route::get('/data-mahasiswa', [DataMahasiswaController::class, 'data_mahasiswa'])->name('siade.datamahasiswa');
+        Route::name('siade.')->group(function () {
+            Route::resource('laporan-nilai', LaporanNilaiController::class)
+                ->only(['index', 'show', 'update']);
+            Route::get('/krs-mahasiswa', [KrsController::class, 'KrsMahasiswa'])->name('krs-mahasiswa');
+            Route::get('/data-mahasiswa', [DataMahasiswaController::class, 'dataMahasiswa'])->name('data-mahasiswa');
+        });
     });
 
     Route::prefix('neo-feeder')->middleware(['CheckPermission', 'CheckIP'])->group(function () {
-        Route::get('/get-mahasiswa', [NeoController::class, 'getMahasiswa'])->name('neofeeder.getmahasiswa');
-        Route::get('/export-krs', [NeoController::class, 'export_krs'])->name('neofeeder.exportkrs');
-        Route::get('/get-kelas-perkuliahan', [NeoController::class, 'get_kelas_perkuliahan'])->name('neofeeder.getkelasperkuliahan');
+        Route::name('neo-feeder.')->group(function () {
+            Route::get('/get-mahasiswa', [NeoController::class, 'getMahasiswa'])->name('get-mahasiswa');
+            Route::get('/export-krs', [NeoController::class, 'exportKrs'])->name('export-krs');
+            Route::get('/get-kelas-perkuliahan', [NeoController::class, 'getKelasPerkuliahan'])->name('get-kelas-perkuliahan');
+        });
     });
     Route::post('/kirim-pesan', [WhatsAppController::class, 'kirimPesan'])->name('kirim-pesan');
 });

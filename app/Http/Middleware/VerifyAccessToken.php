@@ -6,6 +6,8 @@ use Closure;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -18,25 +20,22 @@ class VerifyAccessToken
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $accessToken = Session::get('access_token');
+        $token = Session::get('sso_token');
 
-        if (!$accessToken) {
-            return response()->json(['error' => 'Token not provided'], 401);
+        if (!$token) {
+            return redirect('/login');
         }
-
         try {
-            $key = new Key(env('JWT_SECRET'), 'HS256');
-            $decoded = JWT::decode($accessToken, $key);
-
-            $exp = $decoded->exp;
-
-            if ($exp < time()) {
-                return response()->json(['error' => 'Token has expired'], 401);
-            }
-
-            return $next($request);
+            $decoded = JWT::decode($token, new Key(env('SSO_JWT_SECRET'), 'HS256'));
+        } catch (\Firebase\JWT\ExpiredException $e) {
+            Auth::logout();
+            Session::flush();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect('/login')->withErrors('Session expired, please login again.');
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Invalid token'], 401);
+            return redirect('/login')->withErrors('Invalid token, please login again.');
         }
+        return $next($request);
     }
 }

@@ -20,7 +20,7 @@ class DataMahasiswaController extends Controller
         $this->neofeeder = $neofeeder;
         $this->krsService = $krsService;
     }
-    public function data_mahasiswa(Request $request)
+    public function dataMahasiswa(Request $request)
     {
         try {
             if ($request->ajax()) {

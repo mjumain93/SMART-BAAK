@@ -93,4 +93,18 @@ class KrsService
         }
         return $tahun_akademik;
     }
+    public function jadwalInputNilai($tahunID)
+    {
+        $today = Carbon::today()->format('Y-m-d');
+        $cek_kalender = DB::connection('mariadb')
+            ->table('kalender_detail')
+            ->where('ts', $tahunID)
+            ->where('com_nilai', 'IYA')
+            ->where('NA', 'A')
+            ->whereDate('mulai', '<=', $today)
+            ->whereDate('selesai', '>=', $today)
+            ->first();
+
+        return $cek_kalender ?: null;
+    }
 }

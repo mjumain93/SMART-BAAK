@@ -17,7 +17,7 @@ class AuthController extends Controller
     protected $ssoUrl;
     public function __construct()
     {
-        $this->ssoUrl = 'https://sso.umjambi.ac.id/login?redirect_uri=' . urlencode('https://smart.umjambi.ac.id/callback');
+        $this->ssoUrl = env('SSO_BASE_URL') . '/login?redirect_uri=' . urlencode('http://localhost:8000/callback');
     }
     public function showLoginForm()
     {
@@ -26,28 +26,34 @@ class AuthController extends Controller
     public function callback(Request $request)
     {
         $token = $request->query('token');
-
         if (!$token) {
             return redirect('/login')->with('error', 'Token tidak ditemukan');
         }
 
         try {
-            $response = Http::withToken($token)->get('https://sso.umjambi.ac.id/me');
+            $response = Http::withToken($token)->get(env('SSO_BASE_URL') . '/me');
             if ($response->ok()) {
+
                 $user = $response->json()['user'];
+                $isFirstUser = User::count() === 0;
                 $auth = User::firstOrCreate(
                     [
-                        'email' => $user['email_pribadi'],
+                        'email' => $user['nik'],
                     ],
                     [
                         'name' => $user['nama_lengkap'],
                         'password' => Hash::make(Str::random(16))
                     ]
                 );
-                if ($auth->wasRecentlyCreated) {
+                if ($auth->wasRecentlyCreated && $isFirstUser) {
                     $auth->assignRole('superadmin');
                 }
-                session(['access_token' => $token]);
+
+                if ($user['id_tipe'] === 2) {
+                    $auth->assignRole('dosen');
+                }
+
+                session(['sso_token' => $token]);
                 Auth::guard('web')->login($auth);
 
                 return redirect('/home');
@@ -59,21 +65,21 @@ class AuthController extends Controller
         }
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
         $token = Session::get('sso_token');
 
         if ($token) {
             try {
-                Http::withToken($token)->post('https://sso.umjambi.ac.id/logout');
+                Http::withToken($token)->post(env('SSO_BASE_URL') . '/logout');
             } catch (\Exception $e) {
-                // Optional: log error
             }
         }
 
         Auth::logout();
-        Session::forget('sso_token');
         Session::flush();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return redirect('/')->with('message', 'Logout berhasil');
     }
